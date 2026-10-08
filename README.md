@@ -2,6 +2,12 @@
 
 A Signal Desktop–style messenger with real-time 1:1 and group chat, delivery/read receipts, typing indicators and presence.
 
+**Live demo:** _add Vercel URL_ · **API docs:** _add Render URL_/docs · Log in with `+15550000001` and code `123456`
+
+> Built for the Scaler SDE Fullstack assignment. Not affiliated with or endorsed by Signal Messenger LLC; the Signal name and logo belong to their owners.
+
+**Contents:** [Setup](#setup) · [Features](#features) · [Architecture](#architecture) · [Database schema](#database-schema) · [API](#api-overview) · [Deployment](#deployment) · [Assumptions](#assumptions-and-trade-offs)
+
 - **Frontend:** Next.js (App Router, TypeScript), Zustand for client state, plain CSS with theme tokens (light + dark)
 - **Backend:** FastAPI, SQLAlchemy 2.0 ORM, SQLite
 - **Real-time:** native WebSockets (FastAPI ↔ browser)
@@ -48,7 +54,7 @@ A new number registers a new account and goes through profile setup. To see real
 - **Onboarding:** phone number → mocked OTP → display name and avatar color. The session token is kept in localStorage, so a reload keeps you logged in. Logout lives in Settings.
 - **Chat list:** sorted by latest activity, unread badges, last-message preview ("You: …", "Sender: …" in groups), live "typing…", online dot, search over chats and contacts, "Unread" filter.
 - **1:1 messaging:** real-time send and receive, timestamps, day separators, grouped bubbles, typing indicator, online / last seen.
-- **Message status:** sending (clock) → sent (✓) → delivered (✓✓, dimmed) → read (✓✓, bright).
+- **Message status:** Signal's indicators: sending (dashed ring) → sent (ring with ✓) → delivered (two rings) → read (two filled circles), shown on bubbles and in the chat list.
 - **Groups:** create with a name and members; view members; admins add and remove members; anyone can leave. If the last admin leaves, the longest-standing member is promoted.
 - **Signal experience:** nav rail (Chats / Calls / Stories / Settings), conversation list + chat pane, modals, toasts (including new-message notifications), and Settings with profile editing, Appearance (light/dark), and Privacy / Notifications / Linked devices placeholders.
 - **Placeholders:** calls, stories, attachments, voice notes, emoji and linked devices show "coming soon". Encryption is simulated (UI notice only).
@@ -122,8 +128,14 @@ WebSocket events, server → client: `message`, `receipt`, `typing`, `presence`,
 
 ## Deployment
 
-- **Backend → Render:** `render.yaml` defines the service (root `backend/`, start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`).
-- **Frontend → Vercel:** root directory `frontend/`, env var `NEXT_PUBLIC_API_URL=https://<render-service>.onrender.com`.
+| | Backend (Render, Web Service) | Frontend (Vercel) |
+|---|---|---|
+| Root directory | `backend` | `frontend` |
+| Build | `pip install -r requirements.txt` | auto (Next.js) |
+| Start | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` | auto |
+| Env vars | `PYTHON_VERSION=3.12.7` | `NEXT_PUBLIC_API_URL=https://<service>.onrender.com` |
+
+Optional backend env vars: `CORS_ORIGINS` (comma-separated, default `*`) and `DATABASE_URL` (default `sqlite:///./signal.db`).
 
 ## Assumptions and trade-offs
 

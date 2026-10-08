@@ -1,14 +1,7 @@
 import { formatTime } from "@/lib/format";
 import type { Message, MessageStatus, User } from "@/lib/types";
 import { Avatar } from "../ui/Avatar";
-import { Icon, type IconName } from "../ui/Icon";
-
-const STATUS_ICON: Record<MessageStatus, IconName> = {
-  sending: "clock",
-  sent: "check",
-  delivered: "doubleCheck",
-  read: "doubleCheck",
-};
+import { StatusIcon } from "../ui/StatusIcon";
 
 interface Props {
   message: Message;
@@ -34,11 +27,7 @@ export function MessageBubble({ message, mine, status, sender, firstInRun, lastI
         <span className="bubble-body">{message.body}</span>
         <span className="bubble-meta">
           {formatTime(message.created_at)}
-          {status && (
-            <span className={`status-icon ${status}`} title={status[0].toUpperCase() + status.slice(1)}>
-              <Icon name={STATUS_ICON[status]} size={14} />
-            </span>
-          )}
+          {status && <StatusIcon status={status} />}
         </span>
       </div>
     </div>

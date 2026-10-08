@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { api, tokenStore } from "@/lib/api";
+import { api, ApiError, tokenStore } from "@/lib/api";
 import { disconnectSocket } from "@/lib/socket";
 import type { AuthResponse, Conversation, Message, ReceiptEvent, User } from "@/lib/types";
 
@@ -74,8 +74,9 @@ export const useChat = create<ChatState>()((set, get) => ({
     if (!tokenStore.get()) return;
     try {
       set({ me: await api.me() });
-    } catch {
-      tokenStore.clear();
+    } catch (err) {
+      // Only a rejected token ends the session; a cold-starting or unreachable server shouldn't.
+      if (err instanceof ApiError && err.status === 401) tokenStore.clear();
     }
   },
 

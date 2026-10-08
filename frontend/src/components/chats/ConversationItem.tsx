@@ -1,7 +1,8 @@
-import { conversationColor, conversationTitle, formatListTime, otherMembers } from "@/lib/format";
+import { conversationColor, conversationTitle, formatListTime, messageStatus, otherMembers } from "@/lib/format";
 import type { Conversation } from "@/lib/types";
 import { useChat } from "@/store/chat";
 import { Avatar } from "../ui/Avatar";
+import { StatusIcon } from "../ui/StatusIcon";
 
 interface Props {
   conversation: Conversation;
@@ -35,7 +36,11 @@ export function ConversationItem({ conversation: c, active, onSelect }: Props) {
         </div>
         <div className="conversation-item-bottom">
           <span className={`conversation-item-preview${typing ? " typing" : ""}`}>{preview}</span>
-          {c.unread_count > 0 && <span className="unread-badge">{c.unread_count}</span>}
+          {c.unread_count > 0 ? (
+            <span className="unread-badge">{c.unread_count}</span>
+          ) : (
+            c.last_message?.sender_id === meId && <StatusIcon status={messageStatus(c.last_message, c, meId)} />
+          )}
         </div>
       </div>
     </button>

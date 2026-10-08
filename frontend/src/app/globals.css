@@ -2,6 +2,7 @@
 :root {
   --ultramarine: #2c6bed;
   --ultramarine-hover: #1851b4;
+  --logo: #3a76f0;
   --bg: #ffffff;
   --rail: #f6f6f6;
   --sidebar: #f6f6f6;
@@ -190,9 +191,8 @@ input, textarea { font: inherit; color: inherit; }
   float: right; display: inline-flex; align-items: center; gap: 3px; margin: 6px 0 -4px 10px;
   font-size: 11px; opacity: 0.8;
 }
-.status-icon { display: inline-flex; }
-.status-icon.delivered { opacity: 0.75; }
-.status-icon.read { opacity: 1; filter: drop-shadow(0 0 0.5px #fff); }
+.status-icon { flex-shrink: 0; }
+.conversation-item-bottom .status-icon { color: var(--muted); }
 
 .typing-bubble { display: flex; gap: 4px; padding: 12px 14px; margin-left: 36px; }
 .typing-bubble span {

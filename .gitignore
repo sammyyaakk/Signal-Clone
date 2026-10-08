@@ -15,5 +15,6 @@ next-env.d.ts
 .env*
 !.env.example
 
-# Local tooling
-.claude/
+# Tooling
+.vercel/
+frontend/AGENTS.md

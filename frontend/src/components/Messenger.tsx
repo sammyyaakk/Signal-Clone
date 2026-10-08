@@ -9,7 +9,7 @@ import { ConversationList } from "./chats/ConversationList";
 import { NewChatModal } from "./modals/NewChatModal";
 import { NavRail, type Tab } from "./NavRail";
 import { SettingsPanel } from "./SettingsPanel";
-import { Icon } from "./ui/Icon";
+import { SignalLogo } from "./ui/SignalLogo";
 
 function Placeholder({ title, text }: { title: string; text: string }) {
   return (
@@ -52,7 +52,7 @@ export function Messenger() {
         <ChatPane key={active.id} conversation={active} />
       ) : (
         <section className="chat-pane empty">
-          <Icon name="lock" size={40} />
+          <SignalLogo size={72} />
           <h2>Welcome to Signal</h2>
           <p className="muted">Select a chat or start a new one. Your messages are private.</p>
         </section>

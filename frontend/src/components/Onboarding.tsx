@@ -5,6 +5,7 @@ import { api, ApiError } from "@/lib/api";
 import { AVATAR_COLORS } from "@/lib/format";
 import { useChat } from "@/store/chat";
 import { Avatar } from "./ui/Avatar";
+import { SignalLogo } from "./ui/SignalLogo";
 
 type Step = "phone" | "code" | "profile";
 
@@ -49,10 +50,7 @@ export function Onboarding() {
     <main className="onboarding">
       <div className="onboarding-card">
         <div className="signal-logo">
-          <svg viewBox="0 0 48 48" width="56" height="56" aria-hidden>
-            <circle cx="24" cy="24" r="22" fill="var(--ultramarine)" />
-            <path d="M14 33l2-6a10 10 0 1 1 5 4z" fill="#fff" />
-          </svg>
+          <SignalLogo />
         </div>
 
         {step === "phone" && (
