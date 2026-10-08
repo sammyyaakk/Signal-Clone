@@ -2,7 +2,9 @@
 
 A Signal Desktop–style messenger with real-time 1:1 and group chat, delivery/read receipts, typing indicators and presence.
 
-**Live demo:** _add Vercel URL_ · **API docs:** _add Render URL_/docs · Log in with `+15550000001` and code `123456`
+**Live demo:** https://signal-clone-jet-xi.vercel.app · **API docs:** https://signal-clone-api-uwz6.onrender.com/docs · Log in with `+15550000001` and code `123456`
+
+> The API runs on Render's free tier and sleeps when idle. The first request after a while can take ~50 seconds to wake it.
 
 > Built for the Scaler SDE Fullstack assignment. Not affiliated with or endorsed by Signal Messenger LLC; the Signal name and logo belong to their owners.
 
