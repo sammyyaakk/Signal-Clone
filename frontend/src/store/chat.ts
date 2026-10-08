@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { api, ApiError, tokenStore } from "@/lib/api";
+import { api, setUnauthorizedHandler, tokenStore } from "@/lib/api";
 import { disconnectSocket } from "@/lib/socket";
 import type { AuthResponse, Conversation, Message, ReceiptEvent, User } from "@/lib/types";
 
@@ -23,10 +23,12 @@ interface ChatState {
   restoreSession(): Promise<void>;
   login(auth: AuthResponse): void;
   logout(): Promise<void>;
+  endSession(notice?: string): void;
   updateProfile(patch: Partial<Pick<User, "display_name" | "avatar_color" | "about">>): Promise<void>;
 
   // data loading
   loadInitial(): Promise<void>;
+  resync(): Promise<void>;
   loadMessages(conversationId: number): Promise<void>;
   setContacts(contacts: User[]): void;
 
@@ -74,9 +76,9 @@ export const useChat = create<ChatState>()((set, get) => ({
     if (!tokenStore.get()) return;
     try {
       set({ me: await api.me() });
-    } catch (err) {
-      // Only a rejected token ends the session; a cold-starting or unreachable server shouldn't.
-      if (err instanceof ApiError && err.status === 401) tokenStore.clear();
+    } catch {
+      // A rejected token is handled by the unauthorized handler below; a cold-starting
+      // or unreachable server keeps the token so the user stays logged in.
     }
   },
 
@@ -87,9 +89,14 @@ export const useChat = create<ChatState>()((set, get) => ({
 
   async logout() {
     await api.logout().catch(() => undefined);
+    get().endSession();
+  },
+
+  endSession(notice) {
     disconnectSocket();
     tokenStore.clear();
     set({ ...initialData, online: new Set() });
+    if (notice) get().toast(notice);
   },
 
   async updateProfile(patch) {
@@ -99,6 +106,11 @@ export const useChat = create<ChatState>()((set, get) => ({
   async loadInitial() {
     const [conversations, contacts] = await Promise.all([api.conversations(), api.contacts()]);
     set({ conversations: Object.fromEntries(conversations.map((c) => [c.id, c])), contacts });
+  },
+
+  async resync() {
+    set({ messages: {} }); // open chats reload their history
+    await get().loadInitial();
   },
 
   async loadMessages(conversationId) {
@@ -219,3 +231,8 @@ export const useChat = create<ChatState>()((set, get) => ({
     setTimeout(() => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })), 3500);
   },
 }));
+
+export const SESSION_EXPIRED = "Your session expired. Please log in again.";
+
+// The server rejects our token after logout elsewhere or when its database is reset.
+setUnauthorizedHandler(() => useChat.getState().endSession(SESSION_EXPIRED));

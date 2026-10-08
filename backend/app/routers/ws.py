@@ -20,6 +20,8 @@ async def websocket_endpoint(ws: WebSocket, token: str):
     with SessionLocal() as db:
         user = user_from_token(db, token)
         if not user:
+            # Accept first: a close before the handshake reaches the browser as a generic 1006.
+            await ws.accept()
             await ws.close(code=4401)
             return
         user_id = user.id

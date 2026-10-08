@@ -3,7 +3,7 @@ import { api, tokenStore } from "@/lib/api";
 import { conversationTitle } from "@/lib/format";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
 import type { ServerEvent } from "@/lib/types";
-import { useChat } from "@/store/chat";
+import { SESSION_EXPIRED, useChat } from "@/store/chat";
 
 const TYPING_TIMEOUT_MS = 5000;
 const typingTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -58,8 +58,13 @@ export function useRealtime() {
   useEffect(() => {
     const token = tokenStore.get();
     if (!token) return;
-    useChat.getState().loadInitial();
-    connectSocket(token, handleEvent);
+    const { loadInitial, resync, endSession } = useChat.getState();
+    loadInitial().catch(() => undefined); // a 401 here is handled globally
+    connectSocket(token, {
+      onEvent: handleEvent,
+      onReconnect: () => resync().catch(() => undefined),
+      onUnauthorized: () => endSession(SESSION_EXPIRED),
+    });
     return disconnectSocket;
   }, []);
 }

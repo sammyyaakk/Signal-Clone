@@ -10,6 +10,13 @@ export const tokenStore = {
   clear: () => localStorage.removeItem(TOKEN_KEY),
 };
 
+let onUnauthorized = () => {};
+
+/** Registers what to do when the server rejects our token (e.g. its database was reset). */
+export function setUnauthorizedHandler(handler: () => void) {
+  onUnauthorized = handler;
+}
+
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -26,6 +33,7 @@ async function request<T>(path: string, method = "GET", body?: unknown): Promise
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+  if (res.status === 401 && token) onUnauthorized();
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     throw new ApiError(res.status, typeof data.detail === "string" ? data.detail : "Something went wrong");
