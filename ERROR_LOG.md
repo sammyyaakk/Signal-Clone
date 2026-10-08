@@ -89,6 +89,7 @@ Problems hit while building, testing and deploying this project, and how each on
   - Server: accept the socket, then close it with code **4401**, so the browser sees *why* it was closed.
   - Client: a `401` from any API call or a `4401` socket close ends the session and shows "Your session expired. Please log in again."
   - Client: when the socket reconnects after a drop, it reloads conversations and clears cached message lists, so events missed while offline aren't lost.
+- **Note:** in production, Render's proxy does not pass the `4401` close code through (the browser sees `1006`). The logout still happens, because the reconnect reloads conversations, that request gets a `401`, and the global handler ends the session. The REST `401` is the guarantee; `4401` is a faster path where the close code survives, as it does locally.
 - **Verified:** with a logged-in tab open, the local backend was restarted with a wiped database. The tab returned to the login screen within seconds, and after logging in again both users saw each other's messages in real time.
 - **Files:** `backend/app/routers/ws.py`, `frontend/src/lib/api.ts`, `lib/socket.ts`, `store/chat.ts`, `hooks/useRealtime.ts`
 
