@@ -8,7 +8,7 @@ A Signal Desktop–style messenger with real-time 1:1 and group chat, delivery/r
 
 > Built for the Scaler SDE Fullstack assignment. Not affiliated with or endorsed by Signal Messenger LLC; the Signal name and logo belong to their owners.
 
-**Contents:** [Setup](#setup) · [Features](#features) · [Architecture](#architecture) · [Database schema](#database-schema) · [API](#api-overview) · [Deployment](#deployment) · [Assumptions](#assumptions-and-trade-offs)
+**Contents:** [Setup](#setup) · [Features](#features) · [Architecture](#architecture) · [Database schema](#database-schema) · [API](#api-overview) · [Deployment](#deployment) · [Assumptions](#assumptions-and-trade-offs) · [Error log](ERROR_LOG.md)
 
 - **Frontend:** Next.js (App Router, TypeScript), Zustand for client state, plain CSS with theme tokens (light + dark)
 - **Backend:** FastAPI, SQLAlchemy 2.0 ORM, SQLite
