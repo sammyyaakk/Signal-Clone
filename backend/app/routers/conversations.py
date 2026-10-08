@@ -4,9 +4,19 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..deps import get_current_user
-from ..models import Conversation, Member, Message, User
+from ..models import Conversation, Member, Message, Reaction, User
 from ..realtime import manager
-from ..schemas import ConversationOut, DirectIn, GroupIn, MembersIn, MessageIn, MessageOut, ReadIn
+from ..schemas import (
+    ConversationOut,
+    DirectIn,
+    GroupIn,
+    MembersIn,
+    MessageIn,
+    MessageOut,
+    ReactionIn,
+    ReactionOut,
+    ReadIn,
+)
 from ..services import (
     advance_receipts,
     get_membership,
@@ -108,6 +118,56 @@ async def send_message(
     for member in online:
         await push_receipt(member)
     return out
+
+
+async def _react(db: Session, conversation_id: int, message_id: int, user: User, emoji: str | None):
+    """Sets (emoji) or clears (None) the user's reaction and pushes the new list to members."""
+    member = get_membership(db, conversation_id, user.id)
+    message = db.get(Message, message_id)
+    if not message or message.conversation_id != conversation_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Message not found")
+    mine = next((r for r in message.reactions if r.user_id == user.id), None)
+    if emoji is None:
+        if mine:
+            message.reactions.remove(mine)
+    elif mine:
+        mine.emoji = emoji
+    else:
+        message.reactions.append(Reaction(user_id=user.id, emoji=emoji))
+    db.commit()
+
+    reactions = [ReactionOut.model_validate(r) for r in message.reactions]
+    await manager.send(
+        member_ids(member.conversation),
+        {
+            "type": "reaction",
+            "conversation_id": conversation_id,
+            "message_id": message_id,
+            "reactions": [r.model_dump() for r in reactions],
+        },
+    )
+    return reactions
+
+
+@router.put("/{conversation_id}/messages/{message_id}/reaction", response_model=list[ReactionOut])
+async def set_reaction(
+    conversation_id: int,
+    message_id: int,
+    body: ReactionIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return await _react(db, conversation_id, message_id, user, body.emoji)
+
+
+@router.delete("/{conversation_id}/messages/{message_id}/reaction", response_model=list[ReactionOut])
+async def remove_reaction(
+    conversation_id: int,
+    message_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return await _react(db, conversation_id, message_id, user, None)
 
 
 @router.post("/{conversation_id}/read", status_code=status.HTTP_204_NO_CONTENT)

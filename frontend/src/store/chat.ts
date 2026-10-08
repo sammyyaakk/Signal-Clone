@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { api, setUnauthorizedHandler, tokenStore } from "@/lib/api";
 import { disconnectSocket } from "@/lib/socket";
-import type { AuthResponse, Conversation, Message, ReceiptEvent, User } from "@/lib/types";
+import type { AuthResponse, Conversation, Message, Reaction, ReceiptEvent, User } from "@/lib/types";
 
 interface Toast {
   id: number;
@@ -42,6 +42,8 @@ interface ChatState {
   sendMessage(conversationId: number, body: string): Promise<void>;
   addMessage(m: Message): void;
   markRead(conversationId: number, messageId: number): void;
+  toggleReaction(message: Message, emoji: string): Promise<void>;
+  setReactions(conversationId: number, messageId: number, reactions: Reaction[]): void;
   applyReceipt(e: ReceiptEvent): void;
 
   // realtime presence/typing
@@ -69,6 +71,9 @@ let nextToastId = 1;
 
 /** Stable empty array so selectors don't return a new reference every render. */
 export const NO_IDS: number[] = [];
+
+/** The frontend can go live before the API during a deploy; default fields the older API lacks. */
+const normalize = (m: Message): Message => (m.reactions ? m : { ...m, reactions: [] });
 
 export const useChat = create<ChatState>()((set, get) => ({
   ...initialData,
@@ -115,7 +120,7 @@ export const useChat = create<ChatState>()((set, get) => ({
   },
 
   async loadMessages(conversationId) {
-    const list = await api.messages(conversationId);
+    const list = (await api.messages(conversationId)).map(normalize);
     set((s) => ({ messages: { ...s.messages, [conversationId]: list } }));
   },
 
@@ -147,6 +152,7 @@ export const useChat = create<ChatState>()((set, get) => ({
       sender_id: me.id,
       body,
       created_at: new Date().toISOString(),
+      reactions: [],
       pending: true,
     };
     get().addMessage(temp);
@@ -167,8 +173,9 @@ export const useChat = create<ChatState>()((set, get) => ({
     }
   },
 
-  addMessage: (m) =>
+  addMessage: (incoming) =>
     set((s) => {
+      const m = normalize(incoming);
       const list = s.messages[m.conversation_id];
       if (list?.some((x) => x.id === m.id)) return {};
       const messages = list ? { ...s.messages, [m.conversation_id]: [...list, m] } : s.messages;
@@ -197,6 +204,36 @@ export const useChat = create<ChatState>()((set, get) => ({
       return { conversations: { ...s.conversations, [conversationId]: { ...conversation, unread_count: 0 } } };
     });
   },
+
+  async toggleReaction(message, emoji) {
+    // Picking my current emoji again removes it; any other emoji replaces it.
+    const meId = get().me!.id;
+    const isMine = message.reactions.some((r) => r.user_id === meId && r.emoji === emoji);
+    try {
+      const reactions = isMine
+        ? await api.unreact(message.conversation_id, message.id)
+        : await api.react(message.conversation_id, message.id, emoji);
+      get().setReactions(message.conversation_id, message.id, reactions);
+    } catch {
+      get().toast("Could not update reaction");
+    }
+  },
+
+  setReactions: (conversationId, messageId, reactions) =>
+    set((s) => {
+      const withReactions = (m: Message) => (m.id === messageId ? { ...m, reactions } : m);
+      const list = s.messages[conversationId];
+      const conversation = s.conversations[conversationId];
+      return {
+        messages: list ? { ...s.messages, [conversationId]: list.map(withReactions) } : s.messages,
+        conversations: conversation?.last_message
+          ? {
+              ...s.conversations,
+              [conversationId]: { ...conversation, last_message: withReactions(conversation.last_message) },
+            }
+          : s.conversations,
+      };
+    }),
 
   applyReceipt: (e) =>
     set((s) => {

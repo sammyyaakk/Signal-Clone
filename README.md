@@ -60,8 +60,9 @@ A new number registers a new account and goes through profile setup. To see real
 - **Groups:** create with a name and members; view members; admins add and remove members; anyone can leave. If the last admin leaves, the longest-standing member is promoted.
 - **Signal experience:** nav rail (Chats / Calls / Stories / Settings, where clicking Settings again closes it), conversation list + chat pane, a chat options menu (⋯), hover actions on messages (react, plus a menu where Copy works), modals, toasts (including new-message notifications), and Settings with profile editing, Appearance (light/dark), and Privacy / Notifications / Linked devices placeholders.
 - **Design system:** Signal's colour tokens for light and dark, Inter type scale, Lucide stroke icons, bubbles with a 4px tail that tighten on the stacked side, a floating date pill, and 220ms ease-out transitions.
-- **Placeholders:** calls, stories, attachments, voice notes, emoji and linked devices show "coming soon". Encryption is simulated (UI notice only).
-- **Extras:** dark mode, `Ctrl/Cmd+N` for a new chat, narrow-screen layout (list *or* chat).
+- **Reactions:** Signal's six quick reactions (❤️ 👍 👎 😂 😮 😢) from the react button on any message. One reaction per person per message: picking another emoji replaces yours, and picking yours again (or clicking your chip) removes it. Chips under the bubble show counts, with yours highlighted, and update live for everyone in the chat.
+- **Placeholders:** calls, stories, attachments, voice notes, replies, emoji and linked devices show "coming soon". Encryption is simulated (UI notice only).
+- **Extras:** reactions, dark mode, `Ctrl/Cmd+N` for a new chat, narrow-screen layout (list *or* chat).
 
 ## Architecture
 
@@ -99,12 +100,14 @@ conversation_members  (conversation_id, user_id) PK, role ('admin'|'member'), jo
                       last_delivered_id, last_read_id
 messages              id PK, conversation_id FK, sender_id FK, body, created_at
                       INDEX (conversation_id, id)
+reactions             (message_id, user_id) PK, both FK (CASCADE), emoji, created_at
 ```
 
 Design decisions:
 
 - **One table for 1:1 and groups.** A direct chat is a conversation with two members. `direct_key` (`"<lowId>:<highId>"`) is UNIQUE, so the database itself guarantees at most one chat per pair.
 - **Receipts as per-member watermarks**, not one row per message per recipient. Each member stores the highest message id delivered to them and read by them. A message is *delivered* or *read* once every other member's watermark reaches its id. That's O(members) storage instead of O(messages × members), and unread count = messages after my `last_read_id` that someone else sent.
+- **Reactions** use `(message_id, user_id)` as the primary key, so the database enforces Signal's rule of one reaction per person per message. Changing your reaction updates that row in place.
 - **Delivery** is recorded when the recipient has an open socket at send time, or as soon as they reconnect.
 - Foreign keys are enforced (`PRAGMA foreign_keys=ON`) with `ON DELETE CASCADE` where ownership is clear.
 
@@ -123,11 +126,12 @@ All endpoints except `/auth/verify` require `Authorization: Bearer <token>`. Int
 | POST | `/conversations/group` | `{name, member_ids}` → create a group (creator is admin) |
 | GET / POST | `/conversations/{id}/messages` | message history / send a message |
 | POST | `/conversations/{id}/read` | `{message_id}` → advance my read watermark |
+| PUT / DELETE | `/conversations/{id}/messages/{message_id}/reaction` | set `{emoji}` / remove my reaction → the message's reaction list |
 | POST | `/conversations/{id}/members` | admin: add members |
 | DELETE | `/conversations/{id}/members/{user_id}` | admin: remove a member; or remove yourself to leave |
 | WS | `/ws?token=…` | real-time channel |
 
-WebSocket events, server → client: `message`, `receipt`, `typing`, `presence`, `presence_snapshot`, `conversation`, `conversation_removed`. Client → server: `typing`.
+WebSocket events, server → client: `message`, `receipt`, `reaction`, `typing`, `presence`, `presence_snapshot`, `conversation`, `conversation_removed`. Client → server: `typing`.
 
 ## Deployment
 

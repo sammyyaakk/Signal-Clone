@@ -14,12 +14,18 @@ export interface Member {
   last_read_id: number;
 }
 
+export interface Reaction {
+  user_id: number;
+  emoji: string;
+}
+
 export interface Message {
   id: number; // negative while an optimistic message is still being sent
   conversation_id: number;
   sender_id: number;
   body: string;
   created_at: string;
+  reactions: Reaction[];
   pending?: boolean;
 }
 
@@ -52,6 +58,7 @@ export interface ReceiptEvent {
 export type ServerEvent =
   | { type: "message"; message: Message }
   | ReceiptEvent
+  | { type: "reaction"; conversation_id: number; message_id: number; reactions: Reaction[] }
   | { type: "typing"; conversation_id: number; user_id: number; is_typing: boolean }
   | { type: "presence"; user_id: number; online: boolean; last_seen_at?: string }
   | { type: "presence_snapshot"; online_ids: number[] }

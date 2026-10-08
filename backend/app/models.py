@@ -95,3 +95,17 @@ class Message(Base):
     sender_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     body: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(default=utcnow)
+
+    # selectin: one extra query loads reactions for a whole page of messages
+    reactions: Mapped[list["Reaction"]] = relationship(cascade="all, delete-orphan", lazy="selectin")
+
+
+class Reaction(Base):
+    """One emoji per user per message, as in Signal: reacting again replaces it."""
+
+    __tablename__ = "reactions"
+
+    message_id: Mapped[int] = mapped_column(ForeignKey("messages.id", ondelete="CASCADE"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    emoji: Mapped[str] = mapped_column(String(16))
+    created_at: Mapped[datetime] = mapped_column(default=utcnow)

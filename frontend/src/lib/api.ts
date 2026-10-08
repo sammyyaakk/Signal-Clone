@@ -1,4 +1,4 @@
-import type { AuthResponse, Conversation, Message, User } from "./types";
+import type { AuthResponse, Conversation, Message, Reaction, User } from "./types";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -41,6 +41,9 @@ async function request<T>(path: string, method = "GET", body?: unknown): Promise
   return res.status === 204 ? (undefined as T) : res.json();
 }
 
+const reactionPath = (conversationId: number, messageId: number) =>
+  `/conversations/${conversationId}/messages/${messageId}/reaction`;
+
 export const api = {
   verify: (phone: string, otp: string) => request<AuthResponse>("/auth/verify", "POST", { phone, otp }),
   logout: () => request<void>("/auth/logout", "POST"),
@@ -56,6 +59,10 @@ export const api = {
   messages: (conversationId: number) => request<Message[]>(`/conversations/${conversationId}/messages`),
   send: (conversationId: number, body: string) =>
     request<Message>(`/conversations/${conversationId}/messages`, "POST", { body }),
+  react: (conversationId: number, messageId: number, emoji: string) =>
+    request<Reaction[]>(reactionPath(conversationId, messageId), "PUT", { emoji }),
+  unreact: (conversationId: number, messageId: number) =>
+    request<Reaction[]>(reactionPath(conversationId, messageId), "DELETE"),
   markRead: (conversationId: number, messageId: number) =>
     request<void>(`/conversations/${conversationId}/read`, "POST", { message_id: messageId }),
   addMembers: (conversationId: number, userIds: number[]) =>

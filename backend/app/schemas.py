@@ -56,12 +56,22 @@ class MessageIn(BaseModel):
     body: str = Field(min_length=1, max_length=4000)
 
 
+class ReactionIn(BaseModel):
+    emoji: str = Field(min_length=1, max_length=16)
+
+
+class ReactionOut(OrmModel):
+    user_id: int
+    emoji: str
+
+
 class MessageOut(OrmModel):
     id: int
     conversation_id: int
     sender_id: int
     body: str
     created_at: UtcDatetime
+    reactions: list[ReactionOut] = []
 
 
 class ConversationOut(BaseModel):

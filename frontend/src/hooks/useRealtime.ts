@@ -31,6 +31,8 @@ function handleEvent(event: ServerEvent) {
     }
     case "receipt":
       return s.applyReceipt(event);
+    case "reaction":
+      return s.setReactions(event.conversation_id, event.message_id, event.reactions);
     case "typing": {
       const key = `${event.conversation_id}:${event.user_id}`;
       clearTimeout(typingTimers.get(key));

@@ -5,7 +5,7 @@ from datetime import timedelta
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .models import Contact, Conversation, Member, Message, User, utcnow
+from .models import Contact, Conversation, Member, Message, Reaction, User, utcnow
 
 SEED_USERS = [
     ("+15550000001", "Alice Johnson", "#2c6bed", "Coffee first"),
@@ -48,8 +48,9 @@ def seed_if_empty(db: Session) -> None:
             member.last_delivered_id = member.last_read_id = messages[-1].id
             if unread_for and member.user_id == unread_for.id:
                 member.last_read_id = messages[-1 - unread].id
+        return messages
 
-    chat([alice, bob], [
+    direct = chat([alice, bob], [
         (bob, "Hey Alice! Are we still on for lunch tomorrow?"),
         (alice, "Yes! 12:30 at the usual place?"),
         (bob, "Perfect. I'll book a table."),
@@ -62,7 +63,7 @@ def seed_if_empty(db: Session) -> None:
         (carol, "Done, check your email"),
         (alice, "Got them, thanks!"),
     ], hours_ago=3)
-    chat([alice, bob, carol, dave], [
+    trip = chat([alice, bob, carol, dave], [
         (alice, "Weekend trip planning thread!"),
         (dave, "I'm in. Mountains or beach?"),
         (carol, "Mountains, definitely"),
@@ -78,4 +79,11 @@ def seed_if_empty(db: Session) -> None:
         (dave, "Did you push the fix?"),
         (bob, "Yep, it's on main now"),
     ], hours_ago=5)
+
+    db.add_all([
+        Reaction(message_id=direct[2].id, user_id=alice.id, emoji="❤️"),  # "Perfect. I'll book a table."
+        Reaction(message_id=trip[2].id, user_id=bob.id, emoji="👍"),  # "Mountains, definitely"
+        Reaction(message_id=trip[2].id, user_id=dave.id, emoji="👍"),
+        Reaction(message_id=trip[4].id, user_id=carol.id, emoji="😂"),  # "I'll look up cabins tonight"
+    ])
     db.commit()

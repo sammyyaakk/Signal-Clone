@@ -15,6 +15,7 @@ Problems hit while building, testing and deploying this project, and how each on
 | 9 | [API root URL returned `{"detail":"Not Found"}`](#9-api-root-url-returned-detailnot-found) | Deployment |
 | 10 | [Messages stopped going through between two users after a redeploy](#10-messages-stopped-going-through-between-two-users-after-a-redeploy) | Deployment / realtime |
 | 11 | [Data resets on Render's free tier](#11-data-resets-on-renders-free-tier) | Hosting limitation |
+| 12 | [New frontend crashed against the old API during a deploy](#12-new-frontend-crashed-against-the-old-api-during-a-deploy) | Deployment / compatibility |
 
 ---
 
@@ -102,3 +103,10 @@ Problems hit while building, testing and deploying this project, and how each on
   - **Hosted SQLite (Turso / libSQL):** keeps SQLite and survives restarts, but adds an external service and credentials.
   - **Render persistent disk:** paid plans only.
   - **A keep-alive pinger to stop the sleep:** rejected. Free instance hours (750/month) are shared by every free service in the account, and staying awake 24/7 (~744 hours) would starve other services.
+
+### 12. New frontend crashed against the old API during a deploy
+
+- **Symptom (found while adding reactions):** opening a chat threw `Cannot read properties of undefined (reading 'find')` and the chat went blank.
+- **Cause:** the new frontend expects every message to have a `reactions` list, but it was briefly talking to a backend that didn't send that field yet. Locally this happened while the old server was still running; in production the same thing happens on every merge, because Vercel finishes deploying (~1 min) before Render (~2–3 min).
+- **Fix:** messages are normalized where they enter the store (`loadMessages` and `addMessage`): a missing `reactions` field becomes `[]`. The new frontend therefore works against both the old and the new API, and the order in which the two hosts finish deploying no longer matters. The reverse (old frontend, new API) was already safe, because extra JSON fields are ignored.
+- **Files:** `frontend/src/store/chat.ts`

@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
+import { usePopover } from "@/hooks/usePopover";
 
 export interface MenuItem {
   label: string;
@@ -19,22 +20,7 @@ interface Props {
 
 /** An icon button with a dropdown menu; closes on outside click, Escape, or selection. */
 export function MenuButton({ label, icon, items, up, alignLeft }: Props) {
-  const [open, setOpen] = useState(false);
-  const anchorRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (e: MouseEvent) => {
-      if (!anchorRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+  const { open, setOpen, anchorRef } = usePopover();
 
   return (
     <div className={`menu-anchor${open ? " open" : ""}`} ref={anchorRef}>
