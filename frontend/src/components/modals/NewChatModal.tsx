@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { Search, UserPlus, Users } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import { useChat } from "@/store/chat";
 import { ContactRow } from "../ui/ContactRow";
-import { Icon } from "../ui/Icon";
 import { Modal } from "../ui/Modal";
 import { ContactPicker, toggleIn } from "./ContactPicker";
 
@@ -75,15 +75,15 @@ export function NewChatModal({ onClose }: { onClose: () => void }) {
   return (
     <Modal title="New chat" onClose={onClose}>
       <label className="search-box">
-        <Icon name="search" size={18} />
+        <Search size={18} />
         <input autoFocus placeholder="Name or phone number" value={query} onChange={(e) => setQuery(e.target.value)} />
       </label>
       <button className="action-row" onClick={() => setMode("group")}>
-        <span className="action-row-icon"><Icon name="group" /></span> New group
+        <span className="action-row-icon"><Users size={20} /></span> New group
       </button>
       {canAddPhone && (
         <button className="action-row" disabled={busy} onClick={addContact}>
-          <span className="action-row-icon"><Icon name="personAdd" /></span> Add {phone} to contacts
+          <span className="action-row-icon"><UserPlus size={20} /></span> Add {phone} to contacts
         </button>
       )}
       <div className="list-section-title">Contacts</div>

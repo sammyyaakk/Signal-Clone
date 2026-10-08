@@ -27,6 +27,10 @@ export function Messenger() {
   const [composing, setComposing] = useState(false);
   const active = useChat((s) => (s.activeId ? s.conversations[s.activeId] : undefined));
 
+  // Selecting Settings while it is open closes it again (back to Chats).
+  const selectTab = (next: Tab) =>
+    setTab((current) => (next === "settings" && current === "settings" ? "chats" : next));
+
   useEffect(() => {
     applyTheme(loadTheme());
     // Ctrl/Cmd+N opens "New chat", like Signal Desktop.
@@ -43,11 +47,11 @@ export function Messenger() {
 
   return (
     <div className={`app${active ? " has-active" : ""}`}>
-      <NavRail tab={tab} onChange={setTab} />
-      {tab === "chats" && <ConversationList onCompose={() => setComposing(true)} />}
+      <NavRail tab={tab} onSelect={selectTab} />
+      {tab === "chats" && <ConversationList onCompose={() => setComposing(true)} onOpenSettings={() => selectTab("settings")} />}
       {tab === "calls" && <Placeholder title="Calls" text="Voice and video calls are coming soon." />}
       {tab === "stories" && <Placeholder title="Stories" text="Stories are coming soon." />}
-      {tab === "settings" && <SettingsPanel />}
+      {tab === "settings" && <SettingsPanel onClose={() => setTab("chats")} />}
       {active ? (
         <ChatPane key={active.id} conversation={active} />
       ) : (

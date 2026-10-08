@@ -14,7 +14,7 @@ export function StatusIcon({ status }: { status: MessageStatus }) {
   const width = status === "delivered" || status === "read" ? 19 : 12;
 
   return (
-    <svg className="status-icon" viewBox={`0 0 ${width} 12`} width={width} height={12} role="img" aria-label={label}>
+    <svg className={`status-icon ${status}`} viewBox={`0 0 ${width} 12`} width={width} height={12} role="img" aria-label={label}>
       <title>{label}</title>
       {status === "sending" && <circle cx="6" cy="6" r="5" {...LINE} strokeDasharray="2.2 1.7" />}
       {status === "sent" && (

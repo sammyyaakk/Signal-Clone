@@ -49,10 +49,10 @@ export function formatDay(iso: string): string {
 
 export function formatLastSeen(iso: string): string {
   const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (minutes < 1) return "Last seen just now";
-  if (minutes < 60) return `Last seen ${minutes}m ago`;
-  if (minutes < 24 * 60) return `Last seen ${Math.round(minutes / 60)}h ago`;
-  return `Last seen ${formatListTime(iso)}`;
+  if (minutes < 1) return "Active just now";
+  if (minutes < 60) return `Active ${minutes}m ago`;
+  if (minutes < 24 * 60) return `Active ${Math.round(minutes / 60)}h ago`;
+  return `Active ${formatListTime(iso)}`;
 }
 
 /** Status of my own message, derived from the other members' receipt watermarks. */

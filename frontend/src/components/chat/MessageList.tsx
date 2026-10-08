@@ -3,7 +3,7 @@ import { conversationColor, conversationTitle, formatDay, messageStatus } from "
 import type { Conversation } from "@/lib/types";
 import { NO_IDS, useChat } from "@/store/chat";
 import { Avatar } from "../ui/Avatar";
-import { Icon } from "../ui/Icon";
+import { Lock } from "lucide-react";
 import { MessageBubble } from "./MessageBubble";
 
 const RUN_GAP_MS = 5 * 60_000; // consecutive messages within this gap are grouped visually
@@ -29,7 +29,8 @@ export function MessageList({ conversation: c }: { conversation: Conversation })
           {c.kind === "group" ? `${c.members.length} members` : c.members.find((m) => m.user.id !== meId)?.user.phone}
         </p>
         <p className="encryption-note">
-          <Icon name="lock" size={14} /> Messages are end-to-end encrypted. No one outside this chat can read them.
+          <Lock size={14} />
+          Messages and calls are end-to-end encrypted. No one outside of this chat can read or listen to them.
         </p>
       </div>
 

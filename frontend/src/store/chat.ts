@@ -50,6 +50,7 @@ interface ChatState {
   setOnline(ids: number[]): void;
 
   toast(text: string): void;
+  comingSoon(feature: string): void;
 }
 
 const initialData = {
@@ -230,6 +231,8 @@ export const useChat = create<ChatState>()((set, get) => ({
     set((s) => ({ toasts: [...s.toasts, { id, text }] }));
     setTimeout(() => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })), 3500);
   },
+
+  comingSoon: (feature) => get().toast(`${feature}: coming soon`),
 }));
 
 export const SESSION_EXPIRED = "Your session expired. Please log in again.";

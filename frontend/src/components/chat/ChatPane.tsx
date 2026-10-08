@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ChevronLeft, Ellipsis, Palette, Phone, Search, ShieldCheck, Timer, Users, Video } from "lucide-react";
 import { conversationColor, conversationTitle, formatLastSeen, otherMembers } from "@/lib/format";
 import type { Conversation } from "@/lib/types";
 import { NO_IDS, useChat } from "@/store/chat";
 import { GroupInfoModal } from "../modals/GroupInfoModal";
 import { Avatar } from "../ui/Avatar";
-import { Icon } from "../ui/Icon";
+import { MenuButton, type MenuItem } from "../ui/MenuButton";
 import { Composer } from "./Composer";
 import { MessageList } from "./MessageList";
 
@@ -30,7 +31,7 @@ function useSubtitle(c: Conversation, meId: number): string {
 
 export function ChatPane({ conversation: c }: { conversation: Conversation }) {
   const meId = useChat((s) => s.me!.id);
-  const { loadMessages, markRead, setActive, toast } = useChat();
+  const { loadMessages, markRead, setActive, toast, comingSoon } = useChat();
   const hasMessages = useChat((s) => !!s.messages[c.id]);
   const lastMessage = c.last_message;
   const [showInfo, setShowInfo] = useState(false);
@@ -47,27 +48,35 @@ export function ChatPane({ conversation: c }: { conversation: Conversation }) {
     if (lastMessage && lastMessage.id > myReadId && lastMessage.sender_id !== meId) markRead(c.id, lastMessage.id);
   }, [c.id, lastMessage, myReadId, meId, markRead]);
 
-  const callsComingSoon = () => toast("Voice and video calls are coming soon");
+  const menuItems: MenuItem[] = [
+    ...(c.kind === "group" ? [{ label: "Group members", icon: Users, onSelect: () => setShowInfo(true) }] : []),
+    { label: "Search in chat", icon: Search, onSelect: () => comingSoon("Search in chat") },
+    { label: "Disappearing messages", icon: Timer, onSelect: () => comingSoon("Disappearing messages") },
+    { label: "Chat color & wallpaper", icon: Palette, onSelect: () => comingSoon("Chat colors and wallpapers") },
+    { label: "View safety number", icon: ShieldCheck, onSelect: () => comingSoon("Safety numbers") },
+  ];
 
   return (
     <section className="chat-pane">
       <header className="chat-header">
         <button className="icon-button mobile-only" aria-label="Back" onClick={() => setActive(null)}>
-          <Icon name="back" />
+          <ChevronLeft />
         </button>
         <button className="chat-header-title" onClick={() => c.kind === "group" && setShowInfo(true)}>
-          <Avatar name={title} color={conversationColor(c, meId)} size={32} />
+          <Avatar name={title} color={conversationColor(c, meId)} size={36} />
           <div>
             <div className="chat-title">{title}</div>
             <div className={`chat-subtitle${subtitle.includes("typing") ? " typing" : ""}`}>{subtitle}</div>
           </div>
         </button>
         <div className="chat-header-actions">
-          <button className="icon-button" aria-label="Video call" onClick={callsComingSoon}><Icon name="video" /></button>
-          <button className="icon-button" aria-label="Voice call" onClick={callsComingSoon}><Icon name="calls" /></button>
-          {c.kind === "group" && (
-            <button className="icon-button" aria-label="Group info" onClick={() => setShowInfo(true)}><Icon name="more" /></button>
-          )}
+          <button className="icon-button" aria-label="Video call" onClick={() => comingSoon("Video calls")}>
+            <Video />
+          </button>
+          <button className="icon-button" aria-label="Voice call" onClick={() => comingSoon("Voice calls")}>
+            <Phone />
+          </button>
+          <MenuButton label="Chat options" icon={<Ellipsis />} items={menuItems} />
         </div>
       </header>
       <MessageList conversation={c} />

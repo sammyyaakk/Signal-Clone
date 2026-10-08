@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronLeft } from "lucide-react";
 import { ApiError } from "@/lib/api";
 import { AVATAR_COLORS } from "@/lib/format";
 import { applyTheme, loadTheme, type Theme } from "@/lib/theme";
@@ -13,7 +14,7 @@ const PLACEHOLDER_SECTIONS = [
   { title: "Linked devices", rows: ["Link new device"] },
 ];
 
-export function SettingsPanel() {
+export function SettingsPanel({ onClose }: { onClose: () => void }) {
   const { me, updateProfile, logout, toast } = useChat();
   const [name, setName] = useState(me!.display_name);
   const [about, setAbout] = useState(me!.about);
@@ -33,7 +34,12 @@ export function SettingsPanel() {
 
   return (
     <aside className="sidebar settings">
-      <header className="sidebar-header"><h1>Settings</h1></header>
+      <header className="sidebar-header">
+        <button className="icon-button mobile-only" aria-label="Back to chats" onClick={onClose}>
+          <ChevronLeft />
+        </button>
+        <h1>Settings</h1>
+      </header>
       <div className="conversation-scroll">
         <section className="settings-section">
           <div className="profile-card">

@@ -3,11 +3,17 @@
 import { useMemo, useState } from "react";
 import { conversationTitle } from "@/lib/format";
 import { useChat } from "@/store/chat";
+import { Search, SquarePen, X } from "lucide-react";
+import { Avatar } from "../ui/Avatar";
 import { ContactRow } from "../ui/ContactRow";
-import { Icon } from "../ui/Icon";
 import { ConversationItem } from "./ConversationItem";
 
-export function ConversationList({ onCompose }: { onCompose: () => void }) {
+interface Props {
+  onCompose: () => void;
+  onOpenSettings: () => void;
+}
+
+export function ConversationList({ onCompose, onOpenSettings }: Props) {
   const { me, conversations, contacts, activeId, setActive, openDirect } = useChat();
   const [query, setQuery] = useState("");
   const [unreadOnly, setUnreadOnly] = useState(false);
@@ -30,18 +36,22 @@ export function ConversationList({ onCompose }: { onCompose: () => void }) {
   return (
     <aside className="sidebar">
       <header className="sidebar-header">
+        {/* The nav rail is hidden on narrow screens, so the profile avatar opens Settings there. */}
+        <button className="mobile-only" aria-label="Settings" onClick={onOpenSettings}>
+          <Avatar name={me!.display_name} color={me!.avatar_color} size={32} />
+        </button>
         <h1>Chats</h1>
         <button className="icon-button" title="New chat (Ctrl+N)" aria-label="New chat" onClick={onCompose}>
-          <Icon name="compose" />
+          <SquarePen size={20} />
         </button>
       </header>
       <div className="search-row">
         <label className="search-box">
-          <Icon name="search" size={18} />
+          <Search size={18} />
           <input placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
           {query && (
             <button className="icon-button small" aria-label="Clear search" onClick={() => setQuery("")}>
-              <Icon name="close" size={16} />
+              <X size={16} />
             </button>
           )}
         </label>

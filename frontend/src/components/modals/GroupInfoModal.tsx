@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { UserPlus } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import type { Conversation } from "@/lib/types";
 import { useChat } from "@/store/chat";
@@ -56,7 +57,7 @@ export function GroupInfoModal({ conversation: c, onClose }: { conversation: Con
       <div className="list-section-title">{c.members.length} members</div>
       {isAdmin && (
         <button className="action-row" onClick={() => setAdding(true)}>
-          <span className="action-row-icon">+</span> Add members
+          <span className="action-row-icon"><UserPlus size={20} /></span> Add members
         </button>
       )}
       {c.members.map(({ user, role }) => (

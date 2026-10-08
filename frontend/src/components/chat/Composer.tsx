@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { ArrowUp, Mic, Plus, Smile } from "lucide-react";
 import { sendTyping } from "@/lib/socket";
 import { useChat } from "@/store/chat";
-import { Icon } from "../ui/Icon";
 
 const TYPING_IDLE_MS = 2500;
 
+/** Signal's input bar: attach | rounded text capsule with emoji toggle | mic or send. */
 export function Composer({ conversationId }: { conversationId: number }) {
   const sendMessage = useChat((s) => s.sendMessage);
-  const toast = useChat((s) => s.toast);
+  const comingSoon = useChat((s) => s.comingSoon);
   const [text, setText] = useState("");
   const typingTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const isTyping = useRef(false);
@@ -49,30 +50,26 @@ export function Composer({ conversationId }: { conversationId: number }) {
     }
   };
 
-  const comingSoon = (feature: string) => () => toast(`${feature} are coming soon`);
-
   return (
     <footer className="composer">
+      <button className="icon-button" aria-label="Attach" onClick={() => comingSoon("Attachments")}>
+        <Plus />
+      </button>
       <div className="composer-input">
-        <button className="icon-button" aria-label="Emoji" onClick={comingSoon("Emoji")}>
-          <Icon name="emoji" />
-        </button>
-        <textarea ref={inputRef} rows={1} placeholder="Message" value={text}
+        <textarea ref={inputRef} rows={1} placeholder="Signal message" value={text}
           onChange={(e) => onChange(e.target.value)} onKeyDown={onKeyDown} />
+        <button className="icon-button" aria-label="Emoji" onClick={() => comingSoon("Emoji and stickers")}>
+          <Smile />
+        </button>
       </div>
       {text.trim() ? (
         <button className="send-button" aria-label="Send" onClick={submit}>
-          <Icon name="send" size={18} />
+          <ArrowUp size={20} strokeWidth={2.5} />
         </button>
       ) : (
-        <>
-          <button className="icon-button" aria-label="Attach" onClick={comingSoon("Attachments")}>
-            <Icon name="add" />
-          </button>
-          <button className="icon-button" aria-label="Voice message" onClick={comingSoon("Voice messages")}>
-            <Icon name="mic" />
-          </button>
-        </>
+        <button className="icon-button" aria-label="Voice message" onClick={() => comingSoon("Voice messages")}>
+          <Mic />
+        </button>
       )}
     </footer>
   );

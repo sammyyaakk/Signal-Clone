@@ -58,7 +58,8 @@ A new number registers a new account and goes through profile setup. To see real
 - **1:1 messaging:** real-time send and receive, timestamps, day separators, grouped bubbles, typing indicator, online / last seen.
 - **Message status:** Signal's indicators: sending (dashed ring) → sent (ring with ✓) → delivered (two rings) → read (two filled circles), shown on bubbles and in the chat list.
 - **Groups:** create with a name and members; view members; admins add and remove members; anyone can leave. If the last admin leaves, the longest-standing member is promoted.
-- **Signal experience:** nav rail (Chats / Calls / Stories / Settings), conversation list + chat pane, modals, toasts (including new-message notifications), and Settings with profile editing, Appearance (light/dark), and Privacy / Notifications / Linked devices placeholders.
+- **Signal experience:** nav rail (Chats / Calls / Stories / Settings, where clicking Settings again closes it), conversation list + chat pane, a chat options menu (⋯), hover actions on messages (react, plus a menu where Copy works), modals, toasts (including new-message notifications), and Settings with profile editing, Appearance (light/dark), and Privacy / Notifications / Linked devices placeholders.
+- **Design system:** Signal's colour tokens for light and dark, Inter type scale, Lucide stroke icons, bubbles with a 4px tail that tighten on the stacked side, a floating date pill, and 220ms ease-out transitions.
 - **Placeholders:** calls, stories, attachments, voice notes, emoji and linked devices show "coming soon". Encryption is simulated (UI notice only).
 - **Extras:** dark mode, `Ctrl/Cmd+N` for a new chat, narrow-screen layout (list *or* chat).
 
